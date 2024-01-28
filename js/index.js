@@ -395,21 +395,20 @@ sorting.addEventListener('click', (event) => {
 
 // фільтрація карток
 const filteringData = (data) => {
-	const allInput = sidebar.querySelectorAll('input');
+	const allInputCollection = sidebar.querySelectorAll('input');
 	const value = [];
 
-	allInput.forEach((element) => {
+	allInputCollection.forEach((element) => {
 		if (element.type === "radio" && element.checked) {
 			value.push(sidebar.querySelector(`label[for="${element.id}"]`).innerText.trim().toLowerCase());
 		}
 	})
 
 	filteredData = data.filter((element) => {
-		const elementValue1 = element.specialization.toLowerCase();
-		const elementValue2 = element.category.toLowerCase();
+		const elementSpecialization = element.specialization.toLowerCase();
+		const elementCategory = element.category.toLowerCase();
 
-		return (elementValue1 === value[0] || value[0] === 'всі') &&
-			(elementValue2 === value[1] || value[1] === 'всі');
+		return (elementSpecialization === value[0] || value[0] === 'всі') && (elementCategory === value[1] || value[1] === 'всі');
 	});
 };
 
