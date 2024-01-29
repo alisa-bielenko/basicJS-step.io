@@ -250,88 +250,79 @@ const findTrainer = (fullName) => {
 //пошук необхідних даних
 const trainersCardsContainer = document.querySelector('.trainers-cards__container');
 const trainerCardTemplate = document.querySelector('#trainer-card').content;
-const sorting = document.querySelector('.sorting');
-const sidebar = document.querySelector('.sidebar');
+const sortingForm = document.querySelector('.sorting');
+const sidebarForm = document.querySelector('.sidebar');
 const submitFilters = document.querySelector('.filters__submit');
 
 let filteredData = [];
 
 // відображення блоку сортування та фільтрування та відображення карток при завантаженні сторінки
 document.addEventListener('DOMContentLoaded', () => {
-	sorting.removeAttribute('hidden');
-	sidebar.removeAttribute('hidden');
-	filteringData(DATA);
-	renderCards(filteredData);
+    sortingForm.removeAttribute('hidden');
+    sidebarForm.removeAttribute('hidden');
+    filteringData(DATA);
+    renderCards(filteredData);
 });
 
 //функция disableScroll для блокування/розблокування скролу сторінки
 let scrollPosition = null;
 
 const disableScroll = () => {
-	scrollPosition = window.scrollY;
-	document.body.style.width = '100%';
-	document.body.style.overflow = 'hidden';
-	document.body.style.position = 'fixed';
-	document.body.style.top = `-${scrollPosition}px`;
+    scrollPosition = window.scrollY;
+    document.body.style.width = '100%';
+    document.body.style.overflow = 'hidden';
+    document.body.style.position = 'fixed';
+    document.body.style.top = `-${scrollPosition}px`;
 };
 
 const enableScroll = () => {
-	document.body.style.width = '';
-	document.body.style.overflow = '';
-	document.body.style.position = '';
-	document.body.style.top = '';
-	window.scrollTo(0, scrollPosition);
+    document.body.style.width = '';
+    document.body.style.overflow = '';
+    document.body.style.position = '';
+    document.body.style.top = '';
+    window.scrollTo(0, scrollPosition);
 };
 
-//рендкр карток з модальними вікнами при клику 
+//рендер карток з модальними вікнами при клику 
 const clonedData = [...DATA];
 
 const renderCards = (arr) => {
+    arr.forEach((trainer, id) => {
+        const trainerCard = trainerCardTemplate.cloneNode(true);
+        trainerCard.querySelector('.trainer__img').src = trainer.photo;
+        trainerCard.querySelector('.trainer__name').innerText = `${trainer["last name"]} ${trainer["first name"]}`;
+        trainerCard.querySelector('.trainer').setAttribute('data-id', id);
+        trainersCardsContainer.append(trainerCard);
+    });
 
-	arr.forEach(trainer => {
-		const trainerCard = trainerCardTemplate.cloneNode(true);
-		trainerCard.querySelector('.trainer__img').src = trainer.photo;
-		trainerCard.querySelector('.trainer__name').innerText = `${trainer["last name"]} ${trainer["first name"]}`;
-		trainersCardsContainer.append(trainerCard);
-	});
+    const modalWindowTemplate = document.querySelector('#modal-template').content;
 
-	const showMoreButtonCollection = document.querySelectorAll('.trainer__show-more');
-	const modalWindowTemplate = document.querySelector('#modal-template').content;
+    trainersCardsContainer.addEventListener('click', (event) => {
+        const showMoreButton = event.target.closest('.trainer__show-more');
+        if (showMoreButton) {
+            const cardId = showMoreButton.closest('li').dataset.id;
+            const modalWindow = modalWindowTemplate.cloneNode(true);
+            modalWindow.querySelector('.modal__img').src = showMoreButton.closest('.trainer').querySelector('.trainer__img').src;
+            modalWindow.querySelector('.modal__name').innerText = showMoreButton.closest('.trainer').querySelector('.trainer__name').innerText;
+            modalWindow.querySelector('.modal__point--category').innerText = `Категорія: ${filteredData[cardId].category}`;
+            modalWindow.querySelector('.modal__point--experience').innerText = `Досвід: ${filteredData[cardId].experience}`;
+            modalWindow.querySelector('.modal__point--specialization').innerText = `Спеціалізація: ${filteredData[cardId].specialization}`;
+            modalWindow.querySelector('.modal__text').innerText = findTrainer(modalWindow.querySelector('.modal__name').innerText).description;
 
-	trainersCardsContainer.addEventListener('click', (event) => {
+            trainersCardsContainer.append(modalWindow);
+            disableScroll();
+        }
+    });
 
-		if (event.target === event.currentTarget) {
-			return;
-		}
+    document.addEventListener('click', (event) => {
+        const modalCloseButton = event.target.closest('.modal__close');
+        const modal = document.querySelector('.modal');
 
-		let modalWindow = null;
-
-		showMoreButtonCollection.forEach(el => {
-			if (event.target !== el) {
-				return;
-			};
-
-			if (event.target === el) {
-				modalWindow = modalWindowTemplate.cloneNode(true);
-				modalWindow.querySelector('.modal__img').src = event.target.closest('.trainer').querySelector('.trainer__img').src;
-				modalWindow.querySelector('.modal__name').innerText = event.target.closest('.trainer').querySelector('.trainer__name').innerText;
-				const modalPointCollection = modalWindow.querySelectorAll('.modal__point');
-				modalPointCollection.forEach(element => {
-					const modificator = element.className.split('--')[1];
-					element.innerText = `${modalWindow.querySelector(`.modal__point--${modificator}`).innerText.split(': ')[0]}: ${findTrainer(modalWindow.querySelector('.modal__name').innerText)[modificator]}`;
-				});
-				modalWindow.querySelector('.modal__text').innerText = `${findTrainer(modalWindow.querySelector('.modal__name').innerText).description}`;
-
-                trainersCardsContainer.append(modalWindow);
-				disableScroll();
-			};
-		});
-
-		if (event.target.closest('.modal__close') || event.target === document.querySelector('.modal')) {
-			event.target.closest('.modal').remove();
-			enableScroll();
-		};
-	});
+        if (modalCloseButton || (event.target === modal && modal)) {
+            modal.remove();
+            enableScroll();
+        }
+    });
 };
 
 renderCards(DATA);
@@ -342,95 +333,95 @@ const sortingButtonsTitle = document.querySelector('.sorting__title');
 
 const sortingData = (data) => {
 
-	allSortingButtons.forEach((button) => {
-		if (button.classList.contains("sorting__btn--active")) {
-			const key = button.textContent.trim().toLowerCase();
-			switch (key) {
-				case 'за прізвищем':
-					data.sort((a, b) => a['last name'].localeCompare(b['last name']));
+    allSortingButtons.forEach((button) => {
+        if (button.classList.contains("sorting__btn--active")) {
+            const key = button.textContent.trim().toLowerCase();
+            switch (key) {
+                case 'за прізвищем':
+                    data.sort((a, b) => a['last name'].localeCompare(b['last name']));
                     trainersCardsContainer.innerHTML = '';
                     renderCards(DATA);
-					break;
-				
-				case 'за досвідом':
-					data.sort((a, b) => parseInt(b['experience']) - parseInt(a['experience']));
+                    break;
+
+                case 'за досвідом':
+                    data.sort((a, b) => parseInt(b['experience']) - parseInt(a['experience']));
                     trainersCardsContainer.innerHTML = '';
                     renderCards(DATA);
-					break;
-				
-				case 'за замовчуванням':
+                    break;
+
+                case 'за замовчуванням':
                     trainersCardsContainer.innerHTML = '';
                     renderCards(clonedData);
-					filteringData(DATA);
-				break;
-			};
-		};
-	});
+                    filteringData(DATA);
+                    break;
+            };
+        };
+    });
 };
 
 // сортування карток по кліку
-sorting.addEventListener('click', (event) => {
+sortingForm.addEventListener('click', (event) => {
     if (event.target === event.currentTarget || event.target === sortingButtonsTitle) {
-		return;
-	}
+        return;
+    }
 
-	document.querySelector('.sorting__btn--active')?.classList.remove('sorting__btn--active');
+    document.querySelector('.sorting__btn--active')?.classList.remove('sorting__btn--active');
 
-	event.target.classList.add('sorting__btn--active');
-	const target = event.target;
-	if (target.closest('button')) {
-		allSortingButtons.forEach((button) => {
-			button.classList.remove('sorting__btn--active');
-		});
-		allSortingButtons.forEach((button) => {
-			if (button === target) {
-				button.classList.add('sorting__btn--active');
-				sortingData(filteredData);
-			};
-		});
-		trainersCardsContainer.innerHTML = '';
-		renderCards(filteredData);
-	};
+    event.target.classList.add('sorting__btn--active');
+    const target = event.target;
+    if (target.closest('button')) {
+        allSortingButtons.forEach((button) => {
+            button.classList.remove('sorting__btn--active');
+        });
+        allSortingButtons.forEach((button) => {
+            if (button === target) {
+                button.classList.add('sorting__btn--active');
+                sortingData(filteredData);
+            };
+        });
+        trainersCardsContainer.innerHTML = '';
+        renderCards(filteredData);
+    };
 });
 
 // фільтрація карток
 const filteringData = (data) => {
-	const allInputCollection = sidebar.querySelectorAll('input');
-	const value = [];
+    const allInputCollection = sidebarForm.querySelectorAll('input');
+    const value = [];
 
-	allInputCollection.forEach((element) => {
-		if (element.type === "radio" && element.checked) {
-			value.push(sidebar.querySelector(`label[for="${element.id}"]`).innerText.trim().toLowerCase());
-		}
-	})
+    allInputCollection.forEach((element) => {
+        if (element.type === "radio" && element.checked) {
+            value.push(sidebarForm.querySelector(`label[for="${element.id}"]`).innerText.trim().toLowerCase());
+        }
+    })
 
-	filteredData = data.filter((element) => {
-		const elementSpecialization = element.specialization.toLowerCase();
-		const elementCategory = element.category.toLowerCase();
+    filteredData = data.filter((element) => {
+        const elementSpecialization = element.specialization.toLowerCase();
+        const elementCategory = element.category.toLowerCase();
 
-		return (elementSpecialization === value[0] || value[0] === 'всі') && (elementCategory === value[1] || value[1] === 'всі');
-	});
+        return (elementSpecialization === value[0] || value[0] === 'всі') && (elementCategory === value[1] || value[1] === 'всі');
+    });
 };
 
 // виведення відфільтрованих карток за кліком
-sidebar.addEventListener('click', (event) => {
-	if (event.target === submitFilters || event.target.closest('.filters__submit')) {
-		event.preventDefault();
+sidebarForm.addEventListener('click', (event) => {
+    if (event.target === submitFilters || event.target.closest('.filters__submit')) {
+        event.preventDefault();
 
-		filteringData(DATA);
-		sortingData(filteredData);
-		trainersCardsContainer.innerHTML = '';
-		renderCards(filteredData);
-	};
+        filteringData(DATA);
+        sortingData(filteredData);
+        trainersCardsContainer.innerHTML = '';
+        renderCards(filteredData);
+    };
 });
 
-// прелоудер
+// *----------Preloader -----------*
 window.addEventListener('load', () => {
     const header = document.querySelector(".page-header");
     const preloaderHTML = '<div id="preloader"><img src="./img/fitness_preloader.gif" alt="Loading..."></div>';
     header.insertAdjacentHTML('afterend', preloaderHTML);
     const preloaderElement = document.querySelector("#preloader");
-    
+
     setTimeout(() => {
         preloaderElement.style.display = 'none';
         renderCards(DATA);
